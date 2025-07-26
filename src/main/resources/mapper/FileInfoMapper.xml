@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mini.mapper.FileInfoMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="BaseResultMap" type="com.mini.entity.FileInfo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="fileName" property="fileName" jdbcType="VARCHAR"/>
+        <result column="filePath" property="filePath" jdbcType="VARCHAR"/>
+        <result column="fileSize" property="fileSize" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="uploadDate" property="uploadDate" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 基础字段 -->
+    <sql id="Base_Column_List">
+        id, fileName, filePath, fileSize, status, uploadDate
+    </sql>
+
+    <!-- 插入文件信息 -->
+    <insert id="insert" parameterType="com.mini.entity.FileInfo">
+        INSERT INTO fileInfo (
+            id, fileName, filePath, fileSize, status, uploadDate
+        ) VALUES (
+            #{id}, #{fileName}, #{filePath}, #{fileSize}, #{status}, #{uploadDate}
+        )
+    </insert>
+
+    <!-- 批量插入文件信息 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO fileInfo (
+            id, fileName, filePath, fileSize, status, uploadDate
+        ) VALUES
+        <foreach collection="fileInfos" item="item" separator=",">
+            (
+                #{item.id}, #{item.fileName}, #{item.filePath}, #{item.fileSize}, #{item.status}, #{item.uploadDate}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 根据ID查询文件信息 -->
+    <select id="selectById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM fileInfo
+        WHERE id = #{id} AND status = 0
+    </select>
+
+    <!-- 根据文件名查询文件信息 -->
+    <select id="selectByFileName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM fileInfo
+        WHERE fileName = #{fileName} AND status = 0
+    </select>
+
+    <!-- 分页查询文件列表 -->
+    <select id="selectPage" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM fileInfo
+        WHERE status = 0
+        <if test="fileName != null and fileName != ''">
+            AND fileName LIKE CONCAT('%', #{fileName}, '%')
+        </if>
+        ORDER BY uploadDate DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <!-- 查询总记录数 -->
+    <select id="selectCount" parameterType="java.lang.String" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM fileInfo
+        WHERE status = 0
+        <if test="fileName != null and fileName != ''">
+            AND fileName LIKE CONCAT('%', #{fileName}, '%')
+        </if>
+    </select>
+
+    <!-- 更新文件信息 -->
+    <update id="update" parameterType="com.mini.entity.FileInfo">
+        UPDATE fileInfo
+        <set>
+            <if test="fileName != null">fileName = #{fileName},</if>
+            <if test="filePath != null">filePath = #{filePath},</if>
+            <if test="fileSize != null">fileSize = #{fileSize},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="uploadDate != null">uploadDate = #{uploadDate},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID删除文件信息（逻辑删除） -->
+    <update id="deleteById" parameterType="java.lang.Long">
+        UPDATE fileInfo
+        SET status = 1
+        WHERE id = #{id}
+    </update>
+
+    <!-- 查询7天前的文件 -->
+    <select id="selectExpiredFiles" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM fileInfo
+        WHERE status = 0 AND uploadDate &lt; DATE_SUB(NOW(), INTERVAL 7 DAY)
+    </select>
+
+</mapper> 
