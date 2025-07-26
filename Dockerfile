@@ -14,7 +14,7 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 
 # 构建应用
-RUN mvn clean package -pl file-service -am -DskipTests
+RUN mvn clean package -am -DskipTests
 
 # 运行阶段
 FROM eclipse-temurin:17-jre-alpine
