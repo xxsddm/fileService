@@ -1,5 +1,5 @@
 # 使用Maven构建阶段
-FROM maven:3.8.6-openjdk-21 AS build
+FROM maven:3.8.6-openjdk-17-slim AS build
 
 # 设置工作目录
 WORKDIR /app
@@ -20,7 +20,7 @@ COPY file-service/src ./file-service/src
 RUN mvn clean package -pl file-service -am -DskipTests
 
 # 运行阶段
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 # 设置工作目录
 WORKDIR /app
