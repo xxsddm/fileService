@@ -5,6 +5,12 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.fileservice</groupId>
+    <artifactId>file-service</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>File Service</name>
+    <description>文件管理服务</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -38,13 +44,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <artifactId>file-service</artifactId>
-    <version>1.0.0</version>
-    <packaging>jar</packaging>
-
-    <name>File Service</name>
-    <description>文件管理服务</description>
 
     <dependencies>
         <!-- Spring Boot Starter -->
