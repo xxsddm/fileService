@@ -44,4 +44,9 @@ public interface FileService {
      * 清理过期文件
      */
     void cleanExpiredFiles();
-} 
+
+    /**
+     * 批量删除文件（数据库记录和物理文件）
+     */
+    int deleteFilesByIds(List<Long> ids);
+}

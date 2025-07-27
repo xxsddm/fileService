@@ -1,5 +1,6 @@
 package com.mini.service.impl;
 
+import com.google.common.collect.Lists;
 import com.mini.dto.FileInfoDTO;
 import com.mini.dto.PageResult;
 import com.mini.entity.FileInfo;
@@ -21,6 +22,8 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +45,9 @@ public class FileServiceImpl implements FileService {
 
     @Value("${file.upload.allowed-types}")
     private String allowedTypes;
+
+    @Resource(name = "invalidFileIdQueue")
+    private LinkedBlockingDeque<Long> invalidFileIdQueue;
 
     // 雪花算法生成id
     private static final SnowflakeIdWorker idWorker = new SnowflakeIdWorker(1, 1);
@@ -102,6 +108,9 @@ public class FileServiceImpl implements FileService {
             }
             Path filePath = Paths.get(fileInfo.getFilePath());
             if (!Files.exists(filePath)) {
+                if (Objects.nonNull(fileInfo.getId())) {
+                    invalidFileIdQueue.offer(fileInfo.getId());
+                }
                 throw new RuntimeException("文件不存在");
             }
             return Files.readAllBytes(filePath);
@@ -156,6 +165,37 @@ public class FileServiceImpl implements FileService {
                 log.error("清理过期文件失败: {}", fileInfo.getFileName(), e);
             }
         }
+    }
+
+    @Override
+    public int deleteFilesByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return 0;
+        }
+        int count = 0;
+        for (List<Long> subList : Lists.partition(ids, 500)) {
+            // 批量查询有效文件
+            List<FileInfo> fileInfos = fileInfoMapper.selectByIds(subList);
+            List<Long> validIds = new ArrayList<>();
+
+            // 删除物理文件
+            for (FileInfo fileInfo : fileInfos) {
+                try {
+                    Path path = Paths.get(fileInfo.getFilePath());
+                    Files.deleteIfExists(path);
+                    validIds.add(fileInfo.getId());
+                } catch (IOException e) {
+                    log.error("物理文件删除失败: {}", fileInfo.getFilePath(), e);
+                }
+            }
+
+            // 批量更新数据库状态
+            if (!validIds.isEmpty()) {
+                count += fileInfoMapper.batchDeleteByIds(validIds);
+            }
+        }
+
+        return count;
     }
 
     private void validateFile(MultipartFile file) {

@@ -57,4 +57,14 @@ public interface FileInfoMapper {
      * 查询7天前的文件
      */
     List<FileInfo> selectExpiredFiles();
-} 
+
+    /**
+     * 批量查询文件信息
+     */
+    List<FileInfo> selectByIds(@Param("ids") List<Long> ids);
+
+    /**
+     * 批量逻辑删除
+     */
+    int batchDeleteByIds(@Param("ids") List<Long> ids);
+}
