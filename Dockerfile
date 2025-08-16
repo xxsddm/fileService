@@ -16,8 +16,8 @@ COPY src ./src
 # 构建应用
 RUN mvn clean package -am -DskipTests
 
-# 运行阶段
-FROM eclipse-temurin:17-jre-alpine
+# 运行阶段 - 使用完整JDK以支持Arthas
+FROM eclipse-temurin:17-jdk-alpine
 
 # 设置工作目录
 WORKDIR /app
