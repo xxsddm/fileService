@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <!-- 使用环境变量或默认值配置日志路径，优先使用环境变量 -->
-    <property name="LOG_PATH" value="${LOG_PATH:-logs}" />
-    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH}/file-service}" />
+    <property name="LOG_FILE" value="${LOG_PATH}/file-service" />
     <!-- 设置单个日志文件最大为10MB，可根据需要调整 -->
     <property name="MAX_FILE_SIZE" value="${MAX_FILE_SIZE:-10MB}" />
     <!-- 保留最近7天的日志文件 -->
