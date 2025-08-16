@@ -67,8 +67,8 @@ public class FileServiceImpl implements FileService {
             fileInfoMapper.insert(fileInfo);
             return convertToDTO(fileInfo);
         } catch (Exception e) {
-            log.error("文件上传失败", e);
-            throw new RuntimeException("文件上传失败: " + e.getMessage());
+            log.error("file upload error", e);
+            throw new RuntimeException("file upload error: " + e.getMessage());
         }
     }
 
@@ -90,7 +90,7 @@ public class FileServiceImpl implements FileService {
                 fileInfos.add(fileInfo);
                 results.add(convertToDTO(fileInfo));
             } catch (Exception e) {
-                log.error("文件上传失败: {}", file.getOriginalFilename(), e);
+                log.error("file upload error: {}", file.getOriginalFilename(), e);
             }
         }
         if (!fileInfos.isEmpty()) {
@@ -104,19 +104,19 @@ public class FileServiceImpl implements FileService {
         try {
             FileInfo fileInfo = fileInfoMapper.selectByFileName(fileName);
             if (fileInfo == null) {
-                throw new RuntimeException("文件不存在");
+                throw new RuntimeException("file not found: " + fileName);
             }
             Path filePath = Paths.get(fileInfo.getFilePath());
             if (!Files.exists(filePath)) {
                 if (Objects.nonNull(fileInfo.getId())) {
                     invalidFileIdQueue.offer(fileInfo.getId());
                 }
-                throw new RuntimeException("文件不存在");
+                throw new RuntimeException("file not found: " + fileName);
             }
             return Files.readAllBytes(filePath);
         } catch (IOException e) {
-            log.error("文件下载失败: {}", fileName, e);
-            throw new RuntimeException("文件下载失败");
+            log.error("file download error: {}", fileName, e);
+            throw new RuntimeException("file download error: " + fileName);
         }
     }
 
@@ -147,7 +147,7 @@ public class FileServiceImpl implements FileService {
             Path filePath = Paths.get(fileInfo.getFilePath());
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            log.error("删除物理文件失败: {}", fileInfo.getFilePath(), e);
+            log.error("delete actual file error: {}", fileInfo.getFilePath(), e);
         }
         return fileInfoMapper.deleteById(id) > 0;
     }
@@ -160,9 +160,9 @@ public class FileServiceImpl implements FileService {
                 Path filePath = Paths.get(fileInfo.getFilePath());
                 Files.deleteIfExists(filePath);
                 fileInfoMapper.deleteById(fileInfo.getId());
-                log.info("清理过期文件: {}", fileInfo.getFileName());
+                log.info("delete expired file: {}", fileInfo.getFileName());
             } catch (IOException e) {
-                log.error("清理过期文件失败: {}", fileInfo.getFileName(), e);
+                log.error("delete expired file error: {}", fileInfo.getFileName(), e);
             }
         }
     }
@@ -185,7 +185,7 @@ public class FileServiceImpl implements FileService {
                     Files.deleteIfExists(path);
                     validIds.add(fileInfo.getId());
                 } catch (IOException e) {
-                    log.error("物理文件删除失败: {}", fileInfo.getFilePath(), e);
+                    log.error("delete actual file error: {}", fileInfo.getFilePath(), e);
                 }
             }
 
@@ -200,18 +200,18 @@ public class FileServiceImpl implements FileService {
 
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new RuntimeException("文件不能为空");
+            throw new RuntimeException("file is empty");
         }
         if (file.getSize() > maxFileSize) {
-            throw new RuntimeException("文件大小超过限制");
+            throw new RuntimeException("file size exceeds the limit");
         }
         String originalFilename = file.getOriginalFilename();
         if (!StringUtils.hasText(originalFilename)) {
-            throw new RuntimeException("文件名不能为空");
+            throw new RuntimeException("file is empty");
         }
         String fileExtension = getFileExtension(originalFilename);
         if (!isAllowedFileType(fileExtension)) {
-            throw new RuntimeException("不支持的文件类型");
+            throw new RuntimeException("file type not supported");
         }
     }
 

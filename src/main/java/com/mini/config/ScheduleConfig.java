@@ -43,7 +43,7 @@ public class ScheduleConfig {
             log.info("no invalid files");
             return;
         }
-        log.info("开始清理失效文件...");
+        log.info("delete invalid files start");
         List<Long> idList = new ArrayList<>(invalidFileIdQueue.size());
         while (!invalidFileIdQueue.isEmpty()) {
             Long fileId = invalidFileIdQueue.poll();
@@ -54,9 +54,9 @@ public class ScheduleConfig {
         }
         try {
             int count = fileService.deleteFilesByIds(idList);
-            log.info("失效文件清理完成, 清理文件 {} 个", count);
+            log.info("delete invalid files finish, nDelete =  {}", count);
         } catch (Exception e) {
-            log.error("失效过期文件失败", e);
+            log.error("delete invalid files error", e);
         }
     }
 
@@ -65,12 +65,12 @@ public class ScheduleConfig {
      */
     @Scheduled(cron = "0 0 2 * * ?")
     public void cleanExpiredFiles() {
-        log.info("开始清理过期文件...");
+        log.info("delete expired files start");
         try {
             fileService.cleanExpiredFiles();
-            log.info("过期文件清理完成");
+            log.info("delete expired files finish");
         } catch (Exception e) {
-            log.error("清理过期文件失败", e);
+            log.error("delete expired files error", e);
         }
     }
 }

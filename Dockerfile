@@ -25,8 +25,17 @@ WORKDIR /app
 # 创建上传目录
 RUN mkdir -p /data/uploads
 
+# 创建日志目录
+RUN mkdir -p /data/logs
+
+# 声明卷，用于持久化日志
+VOLUME /data/logs
+
 # 复制构建的jar文件
 COPY --from=build /app/target/file-service-1.0.0.jar app.jar
+
+# 设置环境变量，指定日志路径
+ENV LOG_PATH=/data/logs
 
 # 暴露端口
 EXPOSE 8080

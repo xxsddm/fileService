@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 使用环境变量或默认值配置日志路径，优先使用环境变量 -->
+    <property name="LOG_PATH" value="${LOG_PATH:-logs}" />
+    <property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH}/file-service}" />
+    <!-- 设置单个日志文件最大为10MB，可根据需要调整 -->
+    <property name="MAX_FILE_SIZE" value="${MAX_FILE_SIZE:-10MB}" />
+    <!-- 保留最近7天的日志文件 -->
+    <property name="MAX_HISTORY" value="${MAX_HISTORY:-7}" />
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- 文件输出 - INFO级别日志，带大小和时间滚动策略 -->
+    <appender name="FILE_INFO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}.log</file>
+        <!-- 设置滚动策略：基于时间和大小 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 日志文件命名格式：file-service.2023-04-01.0.log -->
+            <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 日志文件保留天数 -->
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+            <!-- 结合大小限制的触发策略 -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- 单个日志文件最大大小 -->
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!-- 设置过滤器，只记录INFO及以上级别日志 -->
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <!-- 全局日志级别设置为INFO -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE_INFO" />
+    </root>
+</configuration>

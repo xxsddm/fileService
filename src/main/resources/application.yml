@@ -46,7 +46,7 @@ mybatis:
   type-aliases-package: com.fileservice.entity
   configuration:
     map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 
 # Eureka配置
 eureka:
@@ -72,4 +72,13 @@ management:
   endpoint:
     health:
       show-details: always
+
+# 日志配置补充
+logging:
+  level:
+    root: INFO
+    com.mini: INFO
+  config: classpath:logback-spring.xml
+  file:
+    path: logs
 

@@ -35,10 +35,10 @@ public class FileController {
     public ResponseEntity<?> uploadFiles(@RequestParam("files") List<MultipartFile> files) {
         try {
             List<FileInfoDTO> fileInfos = fileService.uploadFiles(files);
-            return ResponseEntity.ok().body(new ResultMsg("上传成功", fileInfos));
+            return ResponseEntity.ok().body(new ResultMsg("upload success", fileInfos));
         } catch (Exception e) {
-            log.error("批量文件上传失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultMsg("上传失败: " + e.getMessage(), null));
+            log.error("upload files failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultMsg("upload failed: " + e.getMessage(), null));
         }
     }
 
@@ -54,7 +54,7 @@ public class FileController {
             headers.setContentDispositionFormData("attachment", URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()));
             return ResponseEntity.ok().headers(headers).body(fileData);
         } catch (Exception e) {
-            log.error("文件下载失败: {}", fileName, e);
+            log.error("download file failed: {}", fileName, e);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
@@ -71,8 +71,8 @@ public class FileController {
             PageResult<FileInfoDTO> result = fileService.getFileList(page, pageSize, fileName);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            log.error("查询文件列表失败", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultMsg("查询失败: " + e.getMessage(), null));
+            log.error("query file list failed", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ResultMsg("query file list failed: " + e.getMessage(), null));
         }
     }
 
