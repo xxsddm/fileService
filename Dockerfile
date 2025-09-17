@@ -19,9 +19,6 @@ RUN mvn clean package -am -DskipTests
 # 运行阶段 - 使用完整JDK以支持Arthas
 FROM eclipse-temurin:17-jdk-alpine
 
-# 设置工作目录
-WORKDIR /app
-
 # 创建上传目录
 RUN mkdir -p /data/uploads
 

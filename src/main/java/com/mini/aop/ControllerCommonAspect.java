@@ -1,5 +1,7 @@
 package com.mini.aop;
 
+import com.mini.nio.NioAsyncExecutor;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -23,10 +25,10 @@ import java.time.format.DateTimeFormatter;
 @Aspect
 @Component
 @Slf4j
-public class ControllerLogAspect {
+public class ControllerCommonAspect {
 
     // Pointcut for all controller methods
-    @Pointcut("execution(* com.mini.controller.*.*(..))")
+    @Pointcut("@annotation(com.mini.annotation.ControllerCommonAnnotation)")
     public void controllerPointcut() {
     }
 
@@ -56,7 +58,7 @@ public class ControllerLogAspect {
         Object result;
 
         try {
-            // Execute the method
+            // Execute the method asynchronously
             result = joinPoint.proceed();
             Instant endTime = Instant.now();
             long executionTime = Duration.between(startTime, endTime).toMillis();
