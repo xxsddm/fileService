@@ -51,7 +51,7 @@ public class FileController {
             byte[] fileData = fileService.downloadFile(fileName);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentDispositionFormData("attachment", URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString()));
+            headers.setContentDispositionFormData("attachment", URLEncoder.encode(fileName, StandardCharsets.UTF_8));
             return ResponseEntity.ok().headers(headers).body(fileData);
         } catch (Exception e) {
             log.error("download file failed: {}", fileName, e);

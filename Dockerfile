@@ -1,5 +1,5 @@
-# 使用Maven构建阶段
-FROM maven:3.8.5-openjdk-17 AS build
+// 使用JDK 21进行构建
+FROM maven:3.8.5-openjdk-21 AS build
 
 # 设置工作目录
 WORKDIR /app
@@ -16,8 +16,8 @@ COPY src ./src
 # 构建应用
 RUN mvn clean package -am -DskipTests
 
-# 运行阶段 - 使用完整JDK以支持Arthas
-FROM eclipse-temurin:17-jdk-alpine
+# 运行阶段 - 使用完整JDK 21以支持Arthas
+FROM eclipse-temurin:21-jdk-alpine
 
 # 创建上传目录
 RUN mkdir -p /data/uploads
