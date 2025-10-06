@@ -1,5 +1,5 @@
 # 使用JDK 21进行构建
-FROM maven:3.8.5-openjdk-21 AS build
+FROM maven:3.9.5-openjdk-21 AS build
 
 # 设置工作目录
 WORKDIR /app
