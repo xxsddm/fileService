@@ -68,10 +68,17 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,prometheus  # 暴露prometheus端点
   endpoint:
+    prometheus:
+      enabled: true
     health:
       show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+        step: 10s  # 采集指标的时间间隔
 
 # 日志配置补充
 logging:

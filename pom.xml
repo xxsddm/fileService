@@ -23,6 +23,7 @@
         <druid.version>1.2.20</druid.version>
         <jakarta.version>2.1.1</jakarta.version>
         <netty.version>4.1.100.Final</netty.version>
+        <prometheus.version>1.12.5</prometheus.version>
     </properties>
 
     <dependencyManagement>
@@ -35,6 +36,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
 
             <!-- Spring Cloud -->
             <dependency>
@@ -118,6 +120,13 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!-- Micrometer Prometheus 注册表 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+            <version>${prometheus.version}</version>
         </dependency>
 
         <!-- Test -->

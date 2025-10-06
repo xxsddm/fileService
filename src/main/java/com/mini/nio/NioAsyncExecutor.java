@@ -13,7 +13,7 @@ public class NioAsyncExecutor {
     // 创建一个独立的EventLoopGroup来处理业务任务。
     // 线程数建议根据任务类型（I/O密集型或CPU密集型）调整。
     private final EventLoopGroup businessEventLoopGroup =
-            new NioEventLoopGroup(Math.max(1, Runtime.getRuntime().availableProcessors() >> 1));
+            new NioEventLoopGroup(1);
 
     public Future<?> submit(Runnable task) {
         return businessEventLoopGroup.next().submit(task);

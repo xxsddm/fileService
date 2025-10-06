@@ -25,8 +25,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 
@@ -61,27 +59,6 @@ public class FileServiceImpl implements FileService {
 
     @ControllerCommonAnnotation
     @Override
-    public FileInfoDTO uploadFile(MultipartFile file) {
-        try {
-            validateFile(file);
-            String fileName = saveFile(file);
-            FileInfo fileInfo = new FileInfo();
-            fileInfo.setId(idWorker.nextId());
-            fileInfo.setFileName(fileName);
-            fileInfo.setFilePath(uploadPath + File.separator + fileName);
-            fileInfo.setFileSize((int) file.getSize());
-            fileInfo.setStatus(0);
-            fileInfo.setUploadDate(LocalDateTime.now());
-            nioAsyncExecutor.submit(() -> fileInfoMapper.insert(fileInfo)).get();
-            return convertToDTO(fileInfo);
-        } catch (Exception e) {
-            log.error("file upload error", e);
-            throw new RuntimeException("file upload error: " + e.getMessage());
-        }
-    }
-
-    @ControllerCommonAnnotation
-    @Override
     public List<FileInfoDTO> uploadFiles(List<MultipartFile> files) {
         List<FileInfoDTO> results = new ArrayList<>();
         List<FileInfo> fileInfos = new ArrayList<>();
@@ -104,7 +81,7 @@ public class FileServiceImpl implements FileService {
         }
         if (!fileInfos.isEmpty()) {
             try {
-                nioAsyncExecutor.submit(() -> fileInfoMapper.batchInsert(fileInfos)).get();
+                nioAsyncExecutor.submit(() -> fileInfoMapper.batchInsert(fileInfos));
             } catch (Exception e) {
                 log.error("file upload nio error", e);
                 throw new RuntimeException("file upload nio error: " + e.getMessage());
@@ -117,7 +94,7 @@ public class FileServiceImpl implements FileService {
     @Override
     public byte[] downloadFile(String fileName) {
         try {
-            FileInfo fileInfo = nioAsyncExecutor.submit(() -> fileInfoMapper.selectByFileName(fileName)).get();
+            FileInfo fileInfo = fileInfoMapper.selectByFileName(fileName);
             if (fileInfo == null) {
                 throw new RuntimeException("file not found: " + fileName);
             }
@@ -132,9 +109,6 @@ public class FileServiceImpl implements FileService {
         } catch (IOException e) {
             log.error("file download error: {}", fileName, e);
             throw new RuntimeException("file download error: " + fileName);
-        } catch (ExecutionException | InterruptedException e) {
-            log.error("file download nio error: {}", fileName, e);
-            throw new RuntimeException(e);
         }
     }
 
@@ -142,17 +116,8 @@ public class FileServiceImpl implements FileService {
     @Override
     public PageResult<FileInfoDTO> getFileList(Integer page, Integer pageSize, String fileName) {
         int offset = (page - 1) * pageSize;
-        Future<List<FileInfo>> fileInfosFuture = nioAsyncExecutor.submit(() -> fileInfoMapper.selectPage(offset, pageSize, fileName));
-        Future<Long> totalFuture = nioAsyncExecutor.submit(() -> fileInfoMapper.selectCount(fileName));
-        List<FileInfo> fileInfos = null;
-        Long total = 0L;
-        try {
-            fileInfos = fileInfosFuture.get();
-            total = totalFuture.get();
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("file list nio error", e);
-            throw new RuntimeException(e);
-        }
+        List<FileInfo> fileInfos= fileInfoMapper.selectPage(offset, pageSize, fileName);
+        long total = fileInfoMapper.selectCount(fileName);
         List<FileInfoDTO> fileInfoDTOs = fileInfos.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -160,41 +125,16 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FileInfoDTO getFileById(Long id) {
-        FileInfo fileInfo = fileInfoMapper.selectById(id);
-        return fileInfo != null ? convertToDTO(fileInfo) : null;
-    }
-
-    @Override
-    public boolean deleteFile(Long id) {
-        FileInfo fileInfo = fileInfoMapper.selectById(id);
-        if (fileInfo == null) {
-            return false;
-        }
-        try {
-            Path filePath = Paths.get(fileInfo.getFilePath());
-            Files.deleteIfExists(filePath);
-        } catch (IOException e) {
-            log.error("delete actual file error: {}", fileInfo.getFilePath(), e);
-        }
-        return fileInfoMapper.deleteById(id) > 0;
-    }
-
-    @Override
     public void cleanExpiredFiles() {
-        List<FileInfo> expiredFiles;
-        try {
-            expiredFiles = nioAsyncExecutor.submit(() -> fileInfoMapper.selectExpiredFiles()).get();
-        } catch (Exception e) {
-            log.error("clean expired nio files error", e);
-            throw new RuntimeException(e);
-        }
+        List<FileInfo> expiredFiles = fileInfoMapper.selectExpiredFiles();
         for (FileInfo fileInfo : expiredFiles) {
             try {
                 Path filePath = Paths.get(fileInfo.getFilePath());
                 Files.deleteIfExists(filePath);
-                fileInfoMapper.deleteById(fileInfo.getId());
-                log.info("delete expired file: {}", fileInfo.getFileName());
+                nioAsyncExecutor.submit(() -> {
+                    fileInfoMapper.deleteById(fileInfo.getId());
+                    log.info("delete expired file: {}", fileInfo.getFileName());
+                });
             } catch (IOException e) {
                 log.error("delete expired file error: {}", fileInfo.getFileName(), e);
             }
@@ -226,13 +166,7 @@ public class FileServiceImpl implements FileService {
 
             // 批量更新数据库状态
             if (!validIds.isEmpty()) {
-                Future<Integer> future = nioAsyncExecutor.submit(() -> fileInfoMapper.batchDeleteByIds(validIds));
-                try {
-                    count += future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    log.error("delete files error", e);
-                    throw new RuntimeException(e);
-                }
+                count += fileInfoMapper.batchDeleteByIds(validIds);
             }
         }
 
@@ -264,7 +198,7 @@ public class FileServiceImpl implements FileService {
         String originalFilename = file.getOriginalFilename();
         String fileName = generateFileName(originalFilename);
         Path filePath = uploadDir.resolve(fileName);
-        Files.copy(file.getInputStream(), filePath);
+        nioAsyncExecutor.submit(() -> Files.copy(file.getInputStream(), filePath));
         return fileName;
     }
 
