@@ -1,4 +1,4 @@
-// 使用JDK 21进行构建
+# 使用JDK 21进行构建
 FROM maven:3.8.5-openjdk-21 AS build
 
 # 设置工作目录
